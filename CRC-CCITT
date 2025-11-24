@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <string.h>
+
+void computeCRC(char data[], char poly[], char remainder[])
+{
+    char temp[200];
+    int dataLen = strlen(data);
+    int polyLen = strlen(poly);
+
+    strcpy(temp, data);
+
+    // Append (polyLen - 1) zeros to data
+    for (int i = 1; i < polyLen; i++)
+        strcat(temp, "0");
+
+    printf("\nData padded (message + zeros): %s\n", temp);
+
+    // Perform binary division
+    for (int i = 0; i <= strlen(temp) - polyLen; i++)
+    {
+        if (temp[i] == '1')
+        {
+            for (int j = 0; j < polyLen; j++)
+                temp[i + j] = (temp[i + j] == poly[j]) ? '0' : '1';
+        }
+    }
+
+    // CRC = last (polyLen-1) bits
+    strcpy(remainder, temp + (strlen(temp) - (polyLen - 1)));
+}
+
+int checkReceived(char received[], char poly[])
+{
+    char temp[200];
+    int polyLen = strlen(poly);
+
+    strcpy(temp, received);
+
+    // Perform division on received message
+    for (int i = 0; i <= strlen(temp) - polyLen; i++)
+    {
+        if (temp[i] == '1')
+        {
+            for (int j = 0; j < polyLen; j++)
+                temp[i + j] = (temp[i + j] == poly[j]) ? '0' : '1';
+        }
+    }
+
+    // Check any '1' in remainder portion
+    for (int i = strlen(temp) - (polyLen - 1); i < strlen(temp); i++)
+        if (temp[i] == '1')
+            return 0; // Error detected
+
+    return 1; // No error
+}
+
+int main()
+{
+    char message[100], poly[30], crc[30], transmitted[150], received[150];
+
+    printf("Enter the message bits       : ");
+    scanf("%s", message);
+
+    printf("Enter the polynomial (g(x))  : ");
+    scanf("%s", poly);
+
+    computeCRC(message, poly, crc);
+
+    printf("CRC value (remainder)        : %s\n", crc);
+
+    // Form transmitted message
+    strcpy(transmitted, message);
+    strcat(transmitted, crc);
+
+    printf("Message to be transmitted    : %s\n", transmitted);
+
+    // Receiver side
+    printf("\nEnter received message bits (can modify 1 bit to test error): ");
+    scanf("%s", received);
+
+    if (checkReceived(received, poly))
+        printf("\n✅ No Error: Message received correctly.\n");
+    else
+        printf("\n❌ ERROR detected in received message!\n");
+
+    return 0;
+}
+

@@ -1,0 +1,56 @@
+import socket
+
+# Step 1: Create a TCP socket
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Step 2: Bind it to an address and port
+server_socket.bind(('localhost', 8080))
+
+# Step 3: Listen for client connection
+server_socket.listen(1)
+print("Server is listening on port 8080...")
+
+# Step 4: Accept client connection
+conn, addr = server_socket.accept()
+print("Connected by:", addr)
+
+# Step 5: Receive file name from client
+filename = conn.recv(1024).decode()
+
+try:
+    # Step 6: Open and read the file content
+    with open(filename, 'r') as f:
+        data = f.read()
+except FileNotFoundError:
+    data = "File not found."
+
+# Step 7: Send file content to client
+conn.send(data.encode())
+
+# Step 8: Close connection
+conn.close()
+server_socket.close()
+
+
+import socket
+
+# Step 1: Create a TCP socket
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Step 2: Connect to the server
+client_socket.connect(('localhost', 8080))
+
+# Step 3: Send filename
+filename = input("Enter filename to request: ")
+client_socket.send(filename.encode())
+
+# Step 4: Receive file content
+data = client_socket.recv(4096).decode()
+
+print("\n--- File Content ---\n")
+print(data)
+
+# Step 5: Close connection
+client_socket.close()
+
+
